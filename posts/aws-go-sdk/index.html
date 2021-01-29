@@ -1,0 +1,521 @@
+<!DOCTYPE html><html lang="en" ><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><meta name="theme" content="Chirpy v2.7.2"><meta name="generator" content="Jekyll v4.2.0" /><meta property="og:title" content="AWS go sdk 使用简介" /><meta name="author" content="adream307" /><meta property="og:locale" content="en_US" /><meta name="description" content="介绍如何使用 aws 的 go sdk 创建 ec2 实例，并且可以 ssh 远程登录该 ec2 实例，以及如何销毁 ec2 实例" /><meta property="og:description" content="介绍如何使用 aws 的 go sdk 创建 ec2 实例，并且可以 ssh 远程登录该 ec2 实例，以及如何销毁 ec2 实例" /><link rel="canonical" href="https://adream307.github.io/posts/aws-go-sdk/" /><meta property="og:url" content="https://adream307.github.io/posts/aws-go-sdk/" /><meta property="og:site_name" content="I have a adream" /><meta property="og:type" content="article" /><meta property="article:published_time" content="2020-10-19T09:30:00+08:00" /><meta name="twitter:card" content="summary" /><meta property="twitter:title" content="AWS go sdk 使用简介" /><meta name="twitter:site" content="@adream307" /><meta name="twitter:creator" content="@adream307" /><meta name="google-site-verification" content="Z5OtiJgdgFPkmVvyaqXAconYzwftcOvxgr9jz0is5zM" /> <script type="application/ld+json"> {"description":"介绍如何使用 aws 的 go sdk 创建 ec2 实例，并且可以 ssh 远程登录该 ec2 实例，以及如何销毁 ec2 实例","url":"https://adream307.github.io/posts/aws-go-sdk/","@type":"BlogPosting","headline":"AWS go sdk 使用简介","dateModified":"2020-10-19T09:30:00+08:00","datePublished":"2020-10-19T09:30:00+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://adream307.github.io/posts/aws-go-sdk/"},"author":{"@type":"Person","name":"adream307"},"@context":"https://schema.org"}</script><title>AWS go sdk 使用简介 | I have a adream</title><link rel="shortcut icon" href="/assets/img/favicons/favicon.ico" type="image/x-icon"><link rel="icon" href="/assets/img/favicons/favicon.ico" type="image/x-icon"><link rel="apple-touch-icon" href="/assets/img/favicons/apple-icon.png"><link rel="apple-touch-icon" href="/assets/img/favicons/apple-icon-precomposed.png"><link rel="apple-touch-icon" sizes="57x57" href="/assets/img/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/assets/img/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/assets/img/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/assets/img/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/assets/img/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/assets/img/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/assets/img/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/assets/img/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-icon-180x180.png"><link rel="icon" type="image/png" sizes="192x192" href="/assets/img/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="96x96" href="/assets/img/favicons/favicon-96x96.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png"><link rel="manifest" href="/assets/img/favicons/manifest.json"><meta name='msapplication-config' content='/assets/img/favicons/browserconfig.xml'><meta name="msapplication-TileColor" content="#ffffff"><meta name="msapplication-TileImage" content="/assets/img/favicons/ms-icon-144x144.png"><meta name="theme-color" content="#ffffff"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"><link rel="dns-prefetch" href="https://fonts.gstatic.com"><link rel="preconnect" href="https://www.google-analytics.com" crossorigin="use-credentials"><link rel="dns-prefetch" href="https://www.google-analytics.com"><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin="anonymous"><link rel="dns-prefetch" href="https://www.googletagmanager.com"><link rel="preconnect" href="cdn.jsdelivr.net"><link rel="dns-prefetch" href="cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha256-LA89z+k9fjgMKQ/kq4OO2Mrf8VltYml/VES+Rg0fh20=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.2/css/all.min.css" integrity="sha256-+N4/V/SbAFiW1MPBCXnfnP9QSN3+Keu+NlB+0ev/YKQ=" crossorigin="anonymous"><link rel="preload" href="/assets/css/post.css" as="style"><link rel="stylesheet" href="/assets/css/post.css"><link rel="preload" as="style" href="/assets/css/lib/bootstrap-toc.min.css"><link rel="stylesheet" href="/assets/css/lib/bootstrap-toc.min.css" /> <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script> <script defer src="https://cdn.jsdelivr.net/combine/npm/popper.js@1.15.0,npm/bootstrap@4/dist/js/bootstrap.min.js"></script> <script async src="/assets/js/post.min.js"></script> <script defer src="/app.js"></script> <script defer src="https://www.googletagmanager.com/gtag/js?id=UA-180680198-1"></script> <script> document.addEventListener("DOMContentLoaded", function(event) { window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'UA-180680198-1'); }); </script><body data-spy="scroll" data-target="#toc"><div id="sidebar" class="d-flex flex-column align-items-end"><div class="profile-wrapper text-center"><div id="avatar"> <a href="/" alt="avatar" class="mx-auto"> <img src="/assets/img/favicons/ms-icon-310x310.png" alt="avatar" onerror="this.style.display='none'"> </a></div><div class="site-title mt-3"> <a href="/">I have a adream</a></div><div class="site-subtitle font-italic">adream307</div></div><ul class="w-100"><li class="nav-item"> <a href="/" class="nav-link"> <i class="fa-fw fas fa-home ml-xl-3 mr-xl-3 unloaded"></i> <span>HOME</span> </a><li class="nav-item"> <a href="/tabs/categories/" class="nav-link"> <i class="fa-fw fas fa-stream ml-xl-3 mr-xl-3 unloaded"></i> <span>CATEGORIES</span> </a><li class="nav-item"> <a href="/tabs/tags/" class="nav-link"> <i class="fa-fw fas fa-tags ml-xl-3 mr-xl-3 unloaded"></i> <span>TAGS</span> </a><li class="nav-item"> <a href="/tabs/archives/" class="nav-link"> <i class="fa-fw fas fa-archive ml-xl-3 mr-xl-3 unloaded"></i> <span>ARCHIVES</span> </a><li class="nav-item"> <a href="/tabs/about/" class="nav-link"> <i class="fa-fw fas fa-info ml-xl-3 mr-xl-3 unloaded"></i> <span>ABOUT</span> </a></ul><div class="sidebar-bottom mt-auto d-flex flex-wrap justify-content-center"> <a href="https://github.com/adream307" aria-label="github" class="order-3" target="_blank" rel="noopener"> <i class="fab fa-github-alt"></i> </a> <a href="https://twitter.com/adream307" aria-label="twitter" class="order-4" target="_blank" rel="noopener"> <i class="fab fa-twitter"></i> </a> <a href=" javascript:location.href = 'mailto:' + ['adream307','163.com'].join('@')" aria-label="email" class="order-5" > <i class="fas fa-envelope"></i> </a> <a href="/feed.xml" aria-label="rss" class="order-6" > <i class="fas fa-rss"></i> </a> <span class="icon-border order-2"></span> <span id="mode-toggle-wrapper" class="order-1"> <i class="mode-toggle fas fa-adjust"></i> <script type="text/javascript"> class ModeToggle { static get MODE_KEY() { return "mode"; } static get DARK_MODE() { return "dark"; } static get LIGHT_MODE() { return "light"; } constructor() { if (this.hasMode) { if (this.isDarkMode) { if (!this.isSysDarkPrefer) { this.setDark(); } } else { if (this.isSysDarkPrefer) { this.setLight(); } } } var self = this; /* always follow the system prefers */ this.sysDarkPrefers.addListener(function() { if (self.hasMode) { if (self.isDarkMode) { if (!self.isSysDarkPrefer) { self.setDark(); } } else { if (self.isSysDarkPrefer) { self.setLight(); } } self.clearMode(); } self.updateMermaid(); }); } /* constructor() */ setDark() { $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE); sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE); } setLight() { $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE); sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE); } clearMode() { $('html').removeAttr(ModeToggle.MODE_KEY); sessionStorage.removeItem(ModeToggle.MODE_KEY); } get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); } get isSysDarkPrefer() { return this.sysDarkPrefers.matches; } get isDarkMode() { return this.mode == ModeToggle.DARK_MODE; } get isLightMode() { return this.mode == ModeToggle.LIGHT_MODE; } get hasMode() { return this.mode != null; } get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); } /* get the current mode on screen */ get modeStatus() { if (this.isDarkMode || (!this.hasMode && this.isSysDarkPrefer) ) { return ModeToggle.DARK_MODE; } else { return ModeToggle.LIGHT_MODE; } } updateMermaid() { if (typeof mermaid !== "undefined") { let expectedTheme = (this.modeStatus === ModeToggle.DARK_MODE? "dark" : "default"); let config = { theme: expectedTheme }; /* re-render the SVG › <https://github.com/mermaid-js/mermaid/issues/311#issuecomment-332557344> */ $(".mermaid").each(function() { let svgCode = $(this).prev().children().html(); $(this).removeAttr("data-processed"); $(this).html(svgCode); }); mermaid.initialize(config); mermaid.init(undefined, ".mermaid"); } } flipMode() { if (this.hasMode) { if (this.isSysDarkPrefer) { if (this.isLightMode) { this.clearMode(); } else { this.setLight(); } } else { if (this.isDarkMode) { this.clearMode(); } else { this.setDark(); } } } else { if (this.isSysDarkPrefer) { this.setLight(); } else { this.setDark(); } } this.updateMermaid(); } /* flipMode() */ } /* ModeToggle */ let toggle = new ModeToggle(); $(".mode-toggle").click(function() { toggle.flipMode(); }); </script> </span></div></div><div id="topbar-wrapper" class="row justify-content-center topbar-down"><div id="topbar" class="col-11 d-flex h-100 align-items-center justify-content-between"> <span id="breadcrumb"> <span> <a href="/"> Posts </a> </span> <span>AWS go sdk 使用简介</span> </span> <i id="sidebar-trigger" class="fas fa-bars fa-fw"></i><div id="topbar-title"> Post</div><i id="search-trigger" class="fas fa-search fa-fw"></i> <span id="search-wrapper" class="align-items-center"> <i class="fas fa-search fa-fw"></i> <input class="form-control" id="search-input" type="search" aria-label="search" placeholder="Search..."> <i class="fa fa-times-circle fa-fw" id="search-cleaner"></i> </span> <span id="search-cancel" >Cancel</span></div></div><div id="main-wrapper"><div id="main"><div class="row"><div id="post-wrapper" class="col-12 col-lg-11 col-xl-8"><div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4"><h1 data-toc-skip>AWS go sdk 使用简介</h1><div class="post-meta text-muted d-flex flex-column"><div> <span class="timeago " data-toggle="tooltip" data-placement="bottom" title="Mon, Oct 19, 2020, 9:30 AM +0800" > Oct 19, 2020 <i class="unloaded">2020-10-19T09:30:00+08:00</i> </span> by <span class="author"> adream307 </span></div><div> <span class="readtime" data-toggle="tooltip" data-placement="bottom" title="2032 words">11 min</span></div></div><div class="post-content"><p>介绍如何使用 aws 的 go sdk 创建 ec2 实例，并且可以 ssh 远程登录该 ec2 实例，以及如何销毁 ec2 实例</p><hr /><h2 id="aws-cli">aws cli</h2><p>aws cli 是 amazon 提供的命令行工具，可以直接在命令行中操作 ec2 实例。可以直接使用 docker 运行 aws cli</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>docker run <span class="nt">--rm</span> <span class="nt">-it</span> amazon/aws-cli <span class="nt">--version</span>
+aws-cli/2.0.56 Python/3.7.3 Linux/5.4.0-48-generic docker/x86_64.amzn.2
+</pre></table></code></div></div><p>创建目录 <code class="language-plaintext highlighter-rouge">~/.aws</code>和 <code class="language-plaintext highlighter-rouge">~/work/asw</code>， 前者用于存储 aws cli 的密钥，后者为 aws 的工作目录</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre><td class="rouge-code"><pre><span class="nv">$ </span><span class="nb">mkdir</span> ~/.aws
+<span class="nv">$ </span><span class="nb">mkdir</span> ~/work/asw
+</pre></table></code></div></div><p>在 <code class="language-plaintext highlighter-rouge">~/.bashrc</code> 中添加 aws cli 的别名</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="nb">alias </span><span class="nv">aws</span><span class="o">=</span><span class="s1">'docker run --rm -it -v ~/.aws:/root/.aws -v ${HOME}/work/aws-work:/aws amazon/aws-cli'</span>
+</pre></table></code></div></div><p>用别名的方式运行 aws cli</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>aws <span class="nt">--version</span>
+aws-cli/2.0.56 Python/3.7.3 Linux/5.4.0-48-generic docker/x86_64.amzn.2
+</pre></table></code></div></div><hr /><h2 id="配置-aws-cli">配置 aws cli</h2><p>按照这个页面 <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html">https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html</a> 设置密钥，得到 <code class="language-plaintext highlighter-rouge">Access key ID</code> 和 <code class="language-plaintext highlighter-rouge">Secret access key</code>，格式类似如下:</p><pre><code class="language-txt">Access key ID: AKIAIOSFODNN7EXAMPLE
+Secret access key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+</code></pre><p>运行 <code class="language-plaintext highlighter-rouge">aws configure</code> 配置 aws cli, <code class="language-plaintext highlighter-rouge">Access key ID</code> 和 <code class="language-plaintext highlighter-rouge">AWS Secret Access Key</code> 为前述页面得到的 aws 密钥, <code class="language-plaintext highlighter-rouge">region</code> 指定 ec2 实例默认在哪个区域创建，<code class="language-plaintext highlighter-rouge">output format</code> 指定 aws cli 在屏幕打印的输出格式</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>aws configure
+AWS Access Key ID <span class="o">[</span>None]: AKIAIOSFODNN7EXAMPLE
+AWS Secret Access Key <span class="o">[</span>None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+Default region name <span class="o">[</span>None]: us-east-2
+Default output format <span class="o">[</span>None]: json
+</pre></table></code></div></div><p>配置完成后会在 <code class="language-plaintext highlighter-rouge">~/.aws</code> 目录下生成两个文件，<code class="language-plaintext highlighter-rouge">config</code> 和 <code class="language-plaintext highlighter-rouge">credentials</code>，内容为前面输入的配置项</p><p><code class="language-plaintext highlighter-rouge">config</code> 文件内容</p><div class="language-ini highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre><td class="rouge-code"><pre><span class="nn">[default]</span>
+<span class="py">region</span> <span class="p">=</span> <span class="s">us-east-2</span>
+<span class="py">output</span> <span class="p">=</span> <span class="s">json </span>
+</pre></table></code></div></div><p><code class="language-plaintext highlighter-rouge">credentials</code> 文件内容</p><div class="language-ini highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre><td class="rouge-code"><pre><span class="nn">[default]</span>
+<span class="py">aws_access_key_id</span> <span class="p">=</span> <span class="s">AKIAIOSFODNN7EXAMPLE</span>
+<span class="py">aws_secret_access_key</span> <span class="p">=</span> <span class="s">wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</span>
+</pre></table></code></div></div><p>当前 aws cli 是在 docker 中运行的， 而 docker 中的用户为 root ，所以 <code class="language-plaintext highlighter-rouge">config</code> 和 <code class="language-plaintext highlighter-rouge">credentials</code> 的 owner 和 group 均为 root， 修改 owner 和 group 为当前用户</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre><td class="rouge-code"><pre><span class="nb">chown </span>adream307:adream307 ~/.aws/config
+<span class="nb">chown </span>adream307:adream307 ~/.aws/credentials
+</pre></table></code></div></div><p>修改 <code class="language-plaintext highlighter-rouge">config</code> 和 <code class="language-plaintext highlighter-rouge">credentials</code> 的 owner 和 group 是非常重要的，因为后续的 go sdk 也需要使用这两个文件，如果权限不正确，可能导致 go sdk 无法访问这两个文件，进而运行失败</p><p>查询当前 aws 用户所有正在运行的 ec2 实例，检查 aws cli 配置是否正确</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>aws ec2 describe-instances <span class="nt">--filters</span> <span class="s2">"Name=instance-state-name,Values=running"</span>
+</pre></table></code></div></div><p>如果 aws 用户有正在运行的 ec2 实例，输出结果类似如下:</p><div class="language-json highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre><td class="rouge-code"><pre><span class="p">{</span><span class="w">
+    </span><span class="nl">"Reservations"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"Groups"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+            </span><span class="nl">"Instances"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"AmiLaunchIndex"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"ImageId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ami-0e84e211558a022c0"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"InstanceId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"i-0ae14f1360e606c51"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"InstanceType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"t2.micro"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"KeyName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"aws-key"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"LaunchTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2020-04-27T02:30:53+00:00"</span><span class="p">,</span><span class="w">
+</span><span class="err">...</span><span class="w">
+
+</span></pre></table></code></div></div><p>如果 aws 用户没有正在运行的 ec2 实例， 输出结果类似如下:</p><div class="language-json highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre><td class="rouge-code"><pre><span class="p">{</span><span class="w">
+    </span><span class="nl">"Reservations"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></pre></table></code></div></div><hr /><h2 id="配置-ssh-密钥对">配置 ssh 密钥对</h2><p>ssh 密钥对用于远程登录 ec2 实例， 创建 ec2 实例需要指定 ssh 密钥对</p><p>如果 aws 用户没有密钥对，请按照这个页面 <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html">https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html</a> 创建密钥对</p><p>创建密钥对后会下载一个 <code class="language-plaintext highlighter-rouge">.pem</code> 文件，为该密钥对的私钥，请妥善保存</p><hr /><h2 id="配置-security-group">配置 Security group</h2><p>Security group 这是 ec2 的安全测试略，最简单的安全策略是 ip 地址白名单， 在这个安全策略中，我们规定只有本地的看法机器可以访问 ce2 的 ssh 端口</p><p>在这个网页 <a href="https://tool.lu/ip/">https://tool.lu/ip/</a> 查询本机的外网 ip 地址， 查询外网 ip 地址时请关闭浏览器的代理，否则得到的是代理服务器的 ip 地址</p><p>新建 Security group <code class="language-plaintext highlighter-rouge">test-sg</code></p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>aws ec2 create-security-group <span class="nt">--group-name</span> test-sg <span class="nt">--description</span> <span class="s2">"ssh from local"</span>   
+<span class="o">{</span>
+    <span class="s2">"GroupId"</span>: <span class="s2">"sg-0d2524524c67cef97"</span>
+<span class="o">}</span>
+</pre></table></code></div></div><p>向 <code class="language-plaintext highlighter-rouge">test-sg</code> 中添加规则，允许本地开发机器可以远程访问 ec2 的 ssh 端口，其中 <code class="language-plaintext highlighter-rouge">117.229.100.251</code> 为本机的外网 ip 地址</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>aws ec2 authorize-security-group-ingress <span class="nt">--group-name</span> test-sg <span class="nt">--protocol</span> tcp <span class="nt">--port</span> 22 <span class="nt">--cidr</span> 117.229.100.251/32
+</pre></table></code></div></div><p>查询 <code class="language-plaintext highlighter-rouge">test-sg</code> 确保成功添加规则</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>aws ec2 describe-security-groups <span class="nt">--group-names</span> test-sg
+<span class="o">{</span>
+    <span class="s2">"SecurityGroups"</span>: <span class="o">[</span>
+        <span class="o">{</span>
+            <span class="s2">"Description"</span>: <span class="s2">"ssh from local"</span>,
+            <span class="s2">"GroupName"</span>: <span class="s2">"test-sg"</span>,
+            <span class="s2">"IpPermissions"</span>: <span class="o">[</span>
+                <span class="o">{</span>
+                    <span class="s2">"FromPort"</span>: 22,
+                    <span class="s2">"IpProtocol"</span>: <span class="s2">"tcp"</span>,
+                    <span class="s2">"IpRanges"</span>: <span class="o">[</span>
+                        <span class="o">{</span>
+                            <span class="s2">"CidrIp"</span>: <span class="s2">"117.229.100.251/32"</span>
+                        <span class="o">}</span>
+                    <span class="o">]</span>,
+...
+</pre></table></code></div></div><hr /><h2 id="创建-ec2-实例">创建 EC2 实例</h2><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>aws ec2 run-instances <span class="nt">--image-id</span> ami-07efac79022b86107 <span class="nt">--count</span> 1 <span class="nt">--instance-type</span> t2.micro <span class="nt">--key-name</span> aws-key <span class="nt">--security-groups</span> test-sg
+</pre></table></code></div></div><ul><li><p><code class="language-plaintext highlighter-rouge">image-id</code> 指定了 ec2 实例的操作系统， ami-07efac79022b86107 表示运行 <code class="language-plaintext highlighter-rouge">Ubuntu Server 20.04 LTS (HVM), SSD Volume Type - ami-07efac79022b86107 (64-bit x86)</code> 。使用 <code class="language-plaintext highlighter-rouge">aws ec2 describe-images</code> 命令可以查看当前支持的所有 image id</p><li><code class="language-plaintext highlighter-rouge">instance-type</code> 指定了当前实例的 cpu 、 内存、磁盘等配置信息，详见 <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html">https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html</a><li><code class="language-plaintext highlighter-rouge">key-name</code> 为之前创建的 ssh 密钥对<li><code class="language-plaintext highlighter-rouge">security-groups</code> 为之前创建的安全策略</ul><p><code class="language-plaintext highlighter-rouge">run-instances</code> 运行结果类似如下, <code class="language-plaintext highlighter-rouge">InstanceId</code> 为 <code class="language-plaintext highlighter-rouge">i-0f4e4d516ad6063d2</code>，刚启动的实例，State 为 <code class="language-plaintext highlighter-rouge">pending</code></p><div class="language-json highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre><td class="rouge-code"><pre><span class="p">{</span><span class="w">
+    </span><span class="nl">"Groups"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="nl">"Instances"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"AmiLaunchIndex"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"ImageId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ami-07efac79022b86107"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"InstanceId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"i-0f4e4d516ad6063d2"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"InstanceType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"t2.micro"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"KeyName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"aws-key"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"LaunchTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2020-10-14T05:59:43+00:00"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"Monitoring"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"State"</span><span class="p">:</span><span class="w"> </span><span class="s2">"disabled"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="nl">"Placement"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"AvailabilityZone"</span><span class="p">:</span><span class="w"> </span><span class="s2">"us-east-2b"</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"GroupName"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"Tenancy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"default"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="nl">"PrivateDnsName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ip-172-31-29-241.us-east-2.compute.internal"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"PrivateIpAddress"</span><span class="p">:</span><span class="w"> </span><span class="s2">"172.31.29.241"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"ProductCodes"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+            </span><span class="nl">"PublicDnsName"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"State"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nl">"Code"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+                </span><span class="nl">"Name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pending"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+</span><span class="err">...</span><span class="w">
+</span></pre></table></code></div></div><p>使用以下命令，制定 <code class="language-plaintext highlighter-rouge">instance-id</code>， 反复查询刚刚创建的实例状态，直至 State 为 <code class="language-plaintext highlighter-rouge">running</code></p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>aws ec2 describe-instances <span class="nt">--filters</span> <span class="s2">"Name=instance-id,Values=i-0f4e4d516ad6063d2"</span>
+</pre></table></code></div></div><p>运行结果类似如下：</p><div class="language-json highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+</pre><td class="rouge-code"><pre><span class="p">{</span><span class="w">
+    </span><span class="nl">"Reservations"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"Groups"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+            </span><span class="nl">"Instances"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="p">{</span><span class="w">
+                    </span><span class="nl">"AmiLaunchIndex"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"ImageId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ami-07efac79022b86107"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"InstanceId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"i-0f4e4d516ad6063d2"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"InstanceType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"t2.micro"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"KeyName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"aws-key"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"LaunchTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2020-10-14T05:59:43+00:00"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"Monitoring"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                        </span><span class="nl">"State"</span><span class="p">:</span><span class="w"> </span><span class="s2">"disabled"</span><span class="w">
+                    </span><span class="p">},</span><span class="w">
+                    </span><span class="nl">"Placement"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                        </span><span class="nl">"AvailabilityZone"</span><span class="p">:</span><span class="w"> </span><span class="s2">"us-east-2b"</span><span class="p">,</span><span class="w">
+                        </span><span class="nl">"GroupName"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+                        </span><span class="nl">"Tenancy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"default"</span><span class="w">
+                    </span><span class="p">},</span><span class="w">
+                    </span><span class="nl">"PrivateDnsName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ip-172-31-29-241.us-east-2.compute.internal"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"PrivateIpAddress"</span><span class="p">:</span><span class="w"> </span><span class="s2">"172.31.29.241"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"ProductCodes"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+                    </span><span class="nl">"PublicDnsName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ec2-18-220-101-251.us-east-2.compute.amazonaws.com"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"PublicIpAddress"</span><span class="p">:</span><span class="w"> </span><span class="s2">"18.220.101.251"</span><span class="p">,</span><span class="w">
+                    </span><span class="nl">"State"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                        </span><span class="nl">"Code"</span><span class="p">:</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w">
+                        </span><span class="nl">"Name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"running"</span><span class="w">
+                    </span><span class="p">},</span><span class="w">
+
+</span></pre></table></code></div></div><hr /><h2 id="ssh-远程登录-ec2">SSH 远程登录 EC2</h2><p>使用 <code class="language-plaintext highlighter-rouge">aws ec2 describe-instances --filters "Name=instance-id,Values=i-0f4e4d516ad6063d2"</code> 查询 ec2 实例的运行状态是，在返回结果中包含该实例的公网 ip 地址 <code class="language-plaintext highlighter-rouge">"PublicIpAddress": "18.220.101.251"</code></p><p>使用 <code class="language-plaintext highlighter-rouge">配置 ssh 密钥对</code> 章节中提到的 <code class="language-plaintext highlighter-rouge">.pem</code> 私钥文件登录 ec2 实例</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>ssh <span class="nt">-i</span> ~/.ssh/aws-key.pem ubuntu@18.220.101.251
+</pre></table></code></div></div><p><code class="language-plaintext highlighter-rouge">aws-key.pem</code> 即为私钥文件</p><hr /><h2 id="终止-ec2-实例">终止 EC2 实例</h2><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>aws ec2 terminate-instances <span class="nt">--instance-ids</span> i-0f4e4d516ad6063d2
+<span class="o">{</span>
+    <span class="s2">"TerminatingInstances"</span>: <span class="o">[</span>
+        <span class="o">{</span>
+            <span class="s2">"CurrentState"</span>: <span class="o">{</span>
+                <span class="s2">"Code"</span>: 32,
+                <span class="s2">"Name"</span>: <span class="s2">"shutting-down"</span>
+            <span class="o">}</span>,
+            <span class="s2">"InstanceId"</span>: <span class="s2">"i-0f4e4d516ad6063d2"</span>,
+            <span class="s2">"PreviousState"</span>: <span class="o">{</span>
+                <span class="s2">"Code"</span>: 16,
+                <span class="s2">"Name"</span>: <span class="s2">"running"</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">]</span>
+<span class="o">}</span>
+
+</pre></table></code></div></div><hr /><h2 id="安装-go-sdk">安装 <code class="language-plaintext highlighter-rouge">go sdk</code></h2><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>go get <span class="nt">-u</span> github.com/aws/aws-sdk-go/...
+</pre></table></code></div></div><h2 id="使用-go-sdk-创建-ec2-实例">使用 <code class="language-plaintext highlighter-rouge">go sdk</code> 创建 ec2 实例</h2><p><code class="language-plaintext highlighter-rouge">create_instance.go</code> 内容如下，该程序创建一个 ec2 实例，并不断查询其状态，直至就绪</p><div class="language-go highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+</pre><td class="rouge-code"><pre><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+	<span class="s">"fmt"</span>
+	<span class="s">"github.com/aws/aws-sdk-go/aws"</span>
+	<span class="s">"github.com/aws/aws-sdk-go/aws/session"</span>
+	<span class="s">"github.com/aws/aws-sdk-go/service/ec2"</span>
+	<span class="s">"log"</span>
+	<span class="s">"time"</span>
+<span class="p">)</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">sess</span> <span class="o">:=</span> <span class="n">session</span><span class="o">.</span><span class="n">Must</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">NewSessionWithOptions</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">Options</span><span class="p">{</span>
+		<span class="n">SharedConfigState</span><span class="o">:</span> <span class="n">session</span><span class="o">.</span><span class="n">SharedConfigEnable</span><span class="p">,</span>
+	<span class="p">}))</span>
+	<span class="n">cli</span> <span class="o">:=</span> <span class="n">ec2</span><span class="o">.</span><span class="n">New</span><span class="p">(</span><span class="n">sess</span><span class="p">)</span>
+
+	<span class="n">inst</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">cli</span><span class="o">.</span><span class="n">RunInstances</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ec2</span><span class="o">.</span><span class="n">RunInstancesInput</span><span class="p">{</span>
+		<span class="n">ImageId</span><span class="o">:</span>        <span class="n">aws</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="s">"ami-07efac79022b86107"</span><span class="p">),</span>
+		<span class="n">InstanceType</span><span class="o">:</span>   <span class="n">aws</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="s">"t2.micro"</span><span class="p">),</span>
+		<span class="n">KeyName</span><span class="o">:</span>        <span class="n">aws</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="s">"aws-key"</span><span class="p">),</span>
+		<span class="n">MaxCount</span><span class="o">:</span>       <span class="n">aws</span><span class="o">.</span><span class="n">Int64</span><span class="p">(</span><span class="m">1</span><span class="p">),</span>
+		<span class="n">MinCount</span><span class="o">:</span>       <span class="n">aws</span><span class="o">.</span><span class="n">Int64</span><span class="p">(</span><span class="m">1</span><span class="p">),</span>
+		<span class="n">SecurityGroups</span><span class="o">:</span> <span class="p">[]</span><span class="o">*</span><span class="kt">string</span><span class="p">{</span><span class="n">aws</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="s">"test-sg"</span><span class="p">)},</span>
+	<span class="p">})</span>
+
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatal</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="k">var</span> <span class="n">instance_id</span> <span class="kt">string</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"reservation id = %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">inst</span><span class="o">.</span><span class="n">ReservationId</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">inst</span><span class="o">.</span><span class="n">Instances</span> <span class="p">{</span>
+		<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"</span><span class="se">\t</span><span class="s"> instance id = %s, state = %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">InstanceId</span><span class="p">,</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span>
+		<span class="n">instance_id</span> <span class="o">=</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">InstanceId</span>
+	<span class="p">}</span>
+
+	<span class="k">for</span> <span class="p">{</span>
+		<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">100</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Millisecond</span><span class="p">)</span>
+		<span class="n">dins</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">cli</span><span class="o">.</span><span class="n">DescribeInstances</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ec2</span><span class="o">.</span><span class="n">DescribeInstancesInput</span><span class="p">{</span>
+			<span class="n">Filters</span><span class="o">:</span> <span class="p">[]</span><span class="o">*</span><span class="n">ec2</span><span class="o">.</span><span class="n">Filter</span><span class="p">{</span>
+				<span class="p">{</span><span class="n">Name</span><span class="o">:</span> <span class="n">aws</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="s">"instance-state-name"</span><span class="p">),</span> <span class="n">Values</span><span class="o">:</span> <span class="p">[]</span><span class="o">*</span><span class="kt">string</span><span class="p">{</span><span class="n">aws</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="s">"running"</span><span class="p">)}},</span>
+			<span class="p">},</span>
+		<span class="p">})</span>
+		<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">Fatal</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+		<span class="p">}</span>
+		<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">r</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">dins</span><span class="o">.</span><span class="n">Reservations</span> <span class="p">{</span>
+			<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">r</span><span class="o">.</span><span class="n">Instances</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">InstanceId</span> <span class="o">==</span> <span class="n">instance_id</span> <span class="p">{</span>
+					<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"start instance, id = %s, public ip = %s, private ip = %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">InstanceId</span><span class="p">,</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">PublicIpAddress</span><span class="p">,</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">PrivateIpAddress</span><span class="p">)</span>
+					<span class="k">return</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+</pre></table></code></div></div><p>编译 <code class="language-plaintext highlighter-rouge">create_instance.go</code></p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>go build <span class="nt">-o</span> create_instance create_instance.go
+</pre></table></code></div></div><p>运行 <code class="language-plaintext highlighter-rouge">create_instance</code> 程序，创建实例，并打印其公网 ip 地址</p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>./create_instance 
+reservation <span class="nb">id</span> <span class="o">=</span> r-03bf771a7ea98969e
+	 instance <span class="nb">id</span> <span class="o">=</span> i-06e3a3f35a1aec95f, state <span class="o">=</span> pending
+start instance, <span class="nb">id</span> <span class="o">=</span> i-06e3a3f35a1aec95f, public ip <span class="o">=</span> 18.222.179.197, private ip <span class="o">=</span> 172.31.6.151
+</pre></table></code></div></div><hr /><h2 id="ssh-远程登录-ec2-1">SSH 远程登录 EC2</h2><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>$ ssh -i ~/.ssh/aws-key.pem ubuntu@18.222.179.197
+</pre></table></code></div></div><hr /><h2 id="使用-go-sdk-终止-ec2-实例">使用 <code class="language-plaintext highlighter-rouge">go sdk</code> 终止 ec2 实例</h2><p><code class="language-plaintext highlighter-rouge">terminate_instance.go</code> 内容如下，该程序查询当前 aws 中正在运行的所有 ec2 实例，并终止第一个 ce2 实例</p><div class="language-go highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+</pre><td class="rouge-code"><pre><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+	<span class="s">"fmt"</span>
+	<span class="s">"github.com/aws/aws-sdk-go/aws/session"</span>
+	<span class="s">"github.com/aws/aws-sdk-go/service/ec2"</span>
+	<span class="s">"log"</span>
+<span class="p">)</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">sess</span> <span class="o">:=</span> <span class="n">session</span><span class="o">.</span><span class="n">Must</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">NewSessionWithOptions</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">Options</span><span class="p">{</span>
+		<span class="n">SharedConfigState</span><span class="o">:</span> <span class="n">session</span><span class="o">.</span><span class="n">SharedConfigEnable</span><span class="p">,</span>
+	<span class="p">}))</span>
+	<span class="n">cli</span> <span class="o">:=</span> <span class="n">ec2</span><span class="o">.</span><span class="n">New</span><span class="p">(</span><span class="n">sess</span><span class="p">)</span>
+	<span class="n">filter_state_name</span> <span class="o">:=</span> <span class="s">"instance-state-name"</span>
+	<span class="n">filter_state_running</span> <span class="o">:=</span> <span class="s">"running"</span>
+	<span class="n">inst</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">cli</span><span class="o">.</span><span class="n">DescribeInstances</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ec2</span><span class="o">.</span><span class="n">DescribeInstancesInput</span><span class="p">{</span>
+		<span class="n">DryRun</span><span class="o">:</span> <span class="no">nil</span><span class="p">,</span>
+		<span class="n">Filters</span><span class="o">:</span> <span class="p">[]</span><span class="o">*</span><span class="n">ec2</span><span class="o">.</span><span class="n">Filter</span><span class="p">{</span>
+			<span class="p">{</span><span class="n">Name</span><span class="o">:</span> <span class="o">&amp;</span><span class="n">filter_state_name</span><span class="p">,</span> <span class="n">Values</span><span class="o">:</span> <span class="p">[]</span><span class="o">*</span><span class="kt">string</span><span class="p">{</span><span class="o">&amp;</span><span class="n">filter_state_running</span><span class="p">}},</span>
+		<span class="p">},</span>
+		<span class="n">InstanceIds</span><span class="o">:</span> <span class="no">nil</span><span class="p">,</span>
+		<span class="n">MaxResults</span><span class="o">:</span>  <span class="no">nil</span><span class="p">,</span>
+		<span class="n">NextToken</span><span class="o">:</span>   <span class="no">nil</span><span class="p">,</span>
+	<span class="p">})</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatal</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="k">var</span> <span class="n">first_id</span> <span class="kt">string</span>
+
+	<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">r</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">inst</span><span class="o">.</span><span class="n">Reservations</span> <span class="p">{</span>
+		<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"reservation id : %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">r</span><span class="o">.</span><span class="n">ReservationId</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">r</span><span class="o">.</span><span class="n">Instances</span> <span class="p">{</span>
+			<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"</span><span class="se">\t</span><span class="s"> instance id : %s, state = %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">InstanceId</span><span class="p">,</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">State</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span>
+			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">first_id</span><span class="p">)</span> <span class="o">==</span> <span class="m">0</span> <span class="p">{</span>
+				<span class="n">first_id</span> <span class="o">=</span> <span class="o">*</span><span class="n">i</span><span class="o">.</span><span class="n">InstanceId</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">""</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">term</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">cli</span><span class="o">.</span><span class="n">TerminateInstances</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ec2</span><span class="o">.</span><span class="n">TerminateInstancesInput</span><span class="p">{</span>
+		<span class="n">DryRun</span><span class="o">:</span>      <span class="no">nil</span><span class="p">,</span>
+		<span class="n">InstanceIds</span><span class="o">:</span> <span class="p">[]</span><span class="o">*</span><span class="kt">string</span><span class="p">{</span><span class="o">&amp;</span><span class="n">first_id</span><span class="p">},</span>
+	<span class="p">})</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatal</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">t</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">term</span><span class="o">.</span><span class="n">TerminatingInstances</span> <span class="p">{</span>
+		<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"instance id = %s, current state = %s, previous state = %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">InstanceId</span><span class="p">,</span> <span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">CurrentState</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="o">*</span><span class="n">t</span><span class="o">.</span><span class="n">PreviousState</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</pre></table></code></div></div><p>编译 <code class="language-plaintext highlighter-rouge">terminate_instance.go</code></p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre><td class="rouge-code"><pre>go build <span class="nt">-o</span> terminate_instance terminate_instance.go
+</pre></table></code></div></div><p>运行 <code class="language-plaintext highlighter-rouge">terminate_instance</code></p><div class="language-bash highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre><td class="rouge-code"><pre><span class="nv">$ </span>./terminate_instance 
+reservation <span class="nb">id</span> : r-03bf771a7ea98969e
+	 instance <span class="nb">id</span> : i-06e3a3f35a1aec95f, state <span class="o">=</span> running
+
+instance <span class="nb">id</span> <span class="o">=</span> i-06e3a3f35a1aec95f, current state <span class="o">=</span> shutting-down, previous state <span class="o">=</span> running
+</pre></table></code></div></div><hr /><h2 id="参考资料">参考资料</h2><ul><li><a href="https://aws.amazon.com/tools/">Tools to Build on AWS</a><li><a href="https://aws.amazon.com/cli/">aws cli</a><li><a href="https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-docker.html">aws cli docker</a><li><a href="https://aws.amazon.com/sdk-for-go/">aws go sdk</a><li><a href="https://github.com/nezha2017/aws-doc-sdk-examples">aws doc sdk examples</a><li><a href="https://docs.aws.amazon.com/zh_cn/cli/latest/userguide/cli-usage-output.html#cli-usage-output-filter">如何使用 –query 选项筛选输出</a></ul></div><div class="post-tail-wrapper text-muted"><div class="post-meta mb-3"> <i class="far fa-folder-open fa-fw mr-1"></i> <a href='/categories/aws/'>aws</a>, <a href='/categories/sdk/'>sdk</a></div><div class="post-tags"> <i class="fa fa-tags fa-fw mr-1"></i> <a href="/tags/aws/" class="post-tag no-text-decoration" >aws</a> <a href="/tags/go/" class="post-tag no-text-decoration" >go</a></div><div class="post-tail-bottom d-flex justify-content-between align-items-center mt-3 pt-5 pb-2"><div class="license-wrapper"> This post is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> by the author.</div><div class="share-wrapper"> <span class="share-label text-muted mr-1">Share</span> <span class="share-icons"> <a href="https://twitter.com/intent/tweet?text=AWS go sdk 使用简介 - I have a adream&url=https://adream307.github.io/posts/aws-go-sdk/" data-toggle="tooltip" data-placement="top" title="Twitter" target="_blank" rel="noopener" aria-label="Twitter"> <i class="fa-fw fab fa-twitter"></i> </a> <a href="https://www.facebook.com/sharer/sharer.php?title=AWS go sdk 使用简介 - I have a adream&u=https://adream307.github.io/posts/aws-go-sdk/" data-toggle="tooltip" data-placement="top" title="Facebook" target="_blank" rel="noopener" aria-label="Facebook"> <i class="fa-fw fab fa-facebook-square"></i> </a> <a href="https://telegram.me/share?text=AWS go sdk 使用简介 - I have a adream&url=https://adream307.github.io/posts/aws-go-sdk/" data-toggle="tooltip" data-placement="top" title="Telegram" target="_blank" rel="noopener" aria-label="Telegram"> <i class="fa-fw fab fa-telegram"></i> </a> <i class="fa-fw fas fa-link small" onclick="copyLink()" data-toggle="tooltip" data-placement="top" title="Copy link"></i> </span></div></div></div></div></div><div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down"><div class="access"><div id="access-lastmod" class="post"> <span>Recent Update</span><ul class="post-content pl-0 pb-1 ml-1 mt-2"><li><a href="/posts/getting-started/">Getting Started</a></ul></div><div id="access-tags"> <span>Trending Tags</span><div class="d-flex flex-wrap mt-3 mb-1 mr-3"> <a class="post-tag" href="/tags/spark-codegen/">spark-codegen</a> <a class="post-tag" href="/tags/go/">go</a> <a class="post-tag" href="/tags/etcd/">etcd</a> <a class="post-tag" href="/tags/git/">git</a> <a class="post-tag" href="/tags/aws/">aws</a> <a class="post-tag" href="/tags/docker/">docker</a> <a class="post-tag" href="/tags/ssh/">ssh</a> <a class="post-tag" href="/tags/bash/">bash</a> <a class="post-tag" href="/tags/c-11/">c++11</a> <a class="post-tag" href="/tags/cuda/">cuda</a></div></div></div><div id="toc-wrapper" class="pl-0 pr-4 mb-5"> <span class="pl-3 pt-2 mb-2">Contents</span><nav id="toc" data-toggle="toc"></nav></div></div></div><div class="row"><div class="col-12 col-lg-11 col-xl-8"><div id="post-extend-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4"><div id="related-posts" class="mt-5 mb-2 mb-sm-4"><h3 class="pt-2 mt-1 mb-4 ml-1" data-toc-skip>Further Reading</h3><div class="card-deck mb-4"><div class="card"> <a href="/posts/aws-profile/"><div class="card-body"> <span class="timeago small" > Oct 19, 2020 <i class="unloaded">2020-10-19T10:00:00+08:00</i> </span><h3 class="pt-0 mt-1 mb-3" data-toc-skip>AWS 命令配置文件</h3><div class="text-muted small"><p> aws cli 可以配置多个 Access Key，在访问时手动选择使用哪个Key ~/.aws/credentials内容如下: 1 2 3 4 5 6 7 [default] aws_access_key_id=AKIAIOSFODNN7EXAMPLE aws_secret_access_key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY [cn...</p></div></div></a></div><div class="card"> <a href="/posts/load-store-in-x86-64/"><div class="card-body"> <span class="timeago small" > Nov 21, 2020 <i class="unloaded">2020-11-21T11:15:00+08:00</i> </span><h3 class="pt-0 mt-1 mb-3" data-toc-skip>int64的读写操作是否具有原子性质</h3><div class="text-muted small"><p> 在 x86-64 机器上，int64 的读写操作是否具有原子性? 假设变量 val 是 int64， 现在有两个线程，线程 writer 只负责向 val 写入数据，线程 reader 只负从 val 读取数据 假设 val 当前值为 0x0102030405060708 writer 线程正在执行写操作，将数据 0x0000111100002222 写入 val reader 线...</p></div></div></a></div><div class="card"> <a href="/posts/select-case/"><div class="card-body"> <span class="timeago small" > Nov 30, 2020 <i class="unloaded">2020-11-30T13:25:00+08:00</i> </span><h3 class="pt-0 mt-1 mb-3" data-toc-skip>go 语言动态添加 select case</h3><div class="text-muted small"><p> go 语言中传统的 select case 必须固定写死，即我们在编码阶段必须明确知道当前有几个 case,如下 1 2 3 4 5 6 7 8 9 10 select{ case &lt;- chan1: //todo case &lt;- chan2: //todo case &lt;- chan3: //todo ...</p></div></div></a></div></div></div><div class="post-navigation d-flex justify-content-between"> <a href="/posts/docker-run-special-gpu/" class="btn btn-outline-primary"><p>docker运行指定 GPU</p></a> <a href="/posts/aws-profile/" class="btn btn-outline-primary"><p>AWS 命令配置文件</p></a></div></div></div></div><footer class="d-flex w-100 justify-content-center"><div class="d-flex justify-content-between align-items-center"><div class="footer-left"><p class="mb-0"> © 2021 <a href="https://twitter.com/adream307">adream307</a>. <span data-toggle="tooltip" data-placement="top" title="Except where otherwise noted, the blog posts on this site are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License by the author.">Some rights reserved.</span></p></div><div class="footer-right"><p class="mb-0"> Powered by <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a> with <a href="https://github.com/cotes2020/jekyll-theme-chirpy/" target="_blank" rel="noopener">Chirpy</a> theme.</p></div></div></footer></div><div id="search-result-wrapper" class="d-flex justify-content-center unloaded"><div class="col-12 col-xl-11 post-content"><div id="search-hints"><h4 class="text-muted mb-4">Trending Tags</h4><a class="post-tag" href="/tags/spark-codegen/">spark codegen</a> <a class="post-tag" href="/tags/go/">go</a> <a class="post-tag" href="/tags/etcd/">etcd</a> <a class="post-tag" href="/tags/git/">git</a> <a class="post-tag" href="/tags/aws/">aws</a> <a class="post-tag" href="/tags/docker/">docker</a> <a class="post-tag" href="/tags/ssh/">ssh</a> <a class="post-tag" href="/tags/bash/">bash</a> <a class="post-tag" href="/tags/c-11/">c++11</a> <a class="post-tag" href="/tags/cuda/">cuda</a></div><div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div></div></div></div><div id="mask"></div><a id="back-to-top" href="#" aria-label="back-to-top" class="btn btn-lg btn-box-shadow" role="button"> <i class="fas fa-angle-up"></i> </a> <script src="https://cdn.jsdelivr.net/npm/simple-jekyll-search@1.7.3/dest/simple-jekyll-search.min.js"></script> <script> SimpleJekyllSearch({ searchInput: document.getElementById('search-input'), resultsContainer: document.getElementById('search-results'), json: '/assets/js/data/search.json', searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0"> <a href="https://adream307.github.io{url}">{title}</a><div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1"><div class="mr-sm-4"><i class="far fa-folder fa-fw"></i>{categories}</div><div><i class="fa fa-tag fa-fw"></i>{tags}</div></div><p>{snippet}</p></div>', noResultsText: '<p class="mt-5">Oops! No result founds.</p>' }); </script>
